@@ -108,3 +108,12 @@ sys_getchildspid(void)
   getchildspid(size, ar);
   return 1;
 }
+
+int
+sys_getsyscallcounter(void)
+{
+  int syscall_num;
+  if (argint(0, &syscall_num) < 0)
+    return -1;
+  return myproc()->systemcall_stat[syscall_num];
+}

@@ -25,6 +25,7 @@ int sleep(int);
 int uptime(void);
 int getppid(void);
 void getchildspid(int size, int ar[]);
+int getsyscallcounter(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

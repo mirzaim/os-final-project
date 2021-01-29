@@ -105,6 +105,7 @@ extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_getppid(void);
 extern int sys_getchildspid(void);
+extern int sys_getsyscallcounter(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +131,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_getppid] sys_getppid,
 [SYS_getchildspid] sys_getchildspid,
+[SYS_getsyscallcounter] sys_getsyscallcounter,
 };
 
 void
