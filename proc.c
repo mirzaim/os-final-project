@@ -112,6 +112,9 @@ found:
   memset(p->context, 0, sizeof *p->context);
   p->context->eip = (uint)forkret;
 
+  // reset systemcall stat
+  memset(p->systemcall_stat, 0, sizeof p->systemcall_stat);
+
   return p;
 }
 
