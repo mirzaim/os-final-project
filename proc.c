@@ -532,3 +532,20 @@ procdump(void)
     cprintf("\n");
   }
 }
+
+// fill input array with pid of childs processes.
+// -1 is last etery.
+void
+getchildspid(int size, int ar[size])
+{
+  struct proc *p;
+  struct proc *curproc = myproc();
+  int counter = 0;
+  
+  acquire(&ptable.lock);
+  for(p = ptable.proc; (p < &ptable.proc[NPROC]) && (counter < size - 1); p++)
+    if (p->parent == curproc)
+      ar[counter++] = p->pid;
+  ar[counter] = -1;
+  release(&ptable.lock);
+}

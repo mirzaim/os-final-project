@@ -95,3 +95,16 @@ sys_getppid(void)
 {
   return myproc()->parent->pid;
 }
+
+int
+sys_getchildspid(void)
+{
+  int *ar, size;
+
+  if (argint(0, &size) < 0)
+    return -1;
+  if (argptr(1, (void *)&ar, size) < 0)
+    return -1;
+  getchildspid(size, ar);
+  return 1;
+}
