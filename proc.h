@@ -33,6 +33,7 @@ struct context {
 };
 
 enum procstate { UNUSED, EMBRYO, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
+enum procst {START_T, TERMINATE_T, RUNNING_T, WAITING_T, CHANGE_ST_T, NumberOfStat };
 
 // Per-process state
 struct proc {
@@ -50,6 +51,7 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
   uint systemcall_stat[MAX_SYS_CALL];
+  uint proc_stat[NumberOfStat];
 };
 
 // Process memory is laid out contiguously, low addresses first:

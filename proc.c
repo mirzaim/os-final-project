@@ -65,6 +65,45 @@ myproc(void) {
   return p;
 }
 
+// Chnage process state and update proc stat.
+// Must hold only ptable.lock.
+void
+chprocstate(struct proc* proc, enum procstate newst) {
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+  
+  uint xticks = ticks;
+  uint priod = xticks - proc->proc_stat[CHANGE_ST_T];
+
+  switch (newst)
+  {
+  case EMBRYO:
+    memset(proc->proc_stat, 0, sizeof proc->proc_stat);
+    proc->proc_stat[START_T] = xticks;
+    break;
+  case ZOMBIE:
+    proc->proc_stat[TERMINATE_T] = xticks;
+    break;
+  default:
+    break;
+  }
+
+  switch (proc->state)
+  {
+  case RUNNABLE:
+    proc->proc_stat[WAITING_T] += priod;
+    break;
+  case RUNNING:
+    proc->proc_stat[RUNNING_T] += priod;
+    break;
+  default:
+    break;
+  }
+
+  proc->proc_stat[CHANGE_ST_T] = xticks;
+  proc->state = newst;
+}
+
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
 // If found, change state to EMBRYO and initialize
@@ -86,14 +125,14 @@ allocproc(void)
   return 0;
 
 found:
-  p->state = EMBRYO;
+  chprocstate(p, EMBRYO);
   p->pid = nextpid++;
 
   release(&ptable.lock);
 
   // Allocate kernel stack.
   if((p->kstack = kalloc()) == 0){
-    p->state = UNUSED;
+    chprocstate(p, UNUSED);
     return 0;
   }
   sp = p->kstack + KSTACKSIZE;
@@ -151,7 +190,7 @@ userinit(void)
   // because the assignment might not be atomic.
   acquire(&ptable.lock);
 
-  p->state = RUNNABLE;
+  chprocstate(p, RUNNABLE);
 
   release(&ptable.lock);
 }
@@ -196,7 +235,7 @@ fork(void)
   if((np->pgdir = copyuvm(curproc->pgdir, curproc->sz)) == 0){
     kfree(np->kstack);
     np->kstack = 0;
-    np->state = UNUSED;
+    chprocstate(np, UNUSED);
     return -1;
   }
   np->sz = curproc->sz;
@@ -217,7 +256,7 @@ fork(void)
 
   acquire(&ptable.lock);
 
-  np->state = RUNNABLE;
+  chprocstate(np, RUNNABLE);
 
   release(&ptable.lock);
 
@@ -265,7 +304,7 @@ exit(void)
   }
 
   // Jump into the scheduler, never to return.
-  curproc->state = ZOMBIE;
+  chprocstate(curproc, ZOMBIE);
   sched();
   panic("zombie exit");
 }
@@ -297,7 +336,7 @@ wait(void)
         p->parent = 0;
         p->name[0] = 0;
         p->killed = 0;
-        p->state = UNUSED;
+        chprocstate(p, UNUSED);
         release(&ptable.lock);
         return pid;
       }
@@ -344,7 +383,7 @@ scheduler(void)
       // before jumping back to us.
       c->proc = p;
       switchuvm(p);
-      p->state = RUNNING;
+      chprocstate(p, RUNNING);
 
       swtch(&(c->scheduler), p->context);
       switchkvm();
@@ -389,7 +428,7 @@ void
 yield(void)
 {
   acquire(&ptable.lock);  //DOC: yieldlock
-  myproc()->state = RUNNABLE;
+  chprocstate(myproc(), RUNNABLE);
   sched();
   release(&ptable.lock);
 }
@@ -440,7 +479,7 @@ sleep(void *chan, struct spinlock *lk)
   }
   // Go to sleep.
   p->chan = chan;
-  p->state = SLEEPING;
+  chprocstate(p, SLEEPING);
 
   sched();
 
@@ -464,7 +503,7 @@ wakeup1(void *chan)
 
   for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
     if(p->state == SLEEPING && p->chan == chan)
-      p->state = RUNNABLE;
+      chprocstate(p, RUNNABLE);
 }
 
 // Wake up all processes sleeping on chan.
@@ -490,7 +529,7 @@ kill(int pid)
       p->killed = 1;
       // Wake process from sleep if necessary.
       if(p->state == SLEEPING)
-        p->state = RUNNABLE;
+        chprocstate(p, RUNNABLE);
       release(&ptable.lock);
       return 0;
     }
