@@ -2,6 +2,7 @@
 #include "x86.h"
 #include "defs.h"
 #include "date.h"
+#include "debug.h"
 #include "param.h"
 #include "memlayout.h"
 #include "mmu.h"
@@ -116,4 +117,13 @@ sys_getsyscallcounter(void)
   if (argint(0, &syscall_num) < 0)
     return -1;
   return myproc()->systemcall_stat[syscall_num];
+}
+
+int
+sys_dwait(void)
+{
+  struct procstat *st;
+  if (argptr(0, (void *)&st, sizeof(struct procstat)) < 0)
+    return -1;
+  return dwait(st);
 }

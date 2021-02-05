@@ -1,5 +1,6 @@
 struct stat;
 struct rtcdate;
+struct procstat;
 
 // system calls
 int fork(void);
@@ -26,6 +27,7 @@ int uptime(void);
 int getppid(void);
 void getchildspid(int size, int ar[]);
 int getsyscallcounter(int);
+int dwait(struct procstat*);
 
 // ulib.c
 int stat(const char*, struct stat*);
