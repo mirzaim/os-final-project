@@ -52,7 +52,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   uint systemcall_stat[MAX_SYS_CALL];
   uint proc_stat[NumberOfStat];
-  int priotiry;                // Process priority
+  int priority;                // Process priority
 };
 
 // Process memory is laid out contiguously, low addresses first:
