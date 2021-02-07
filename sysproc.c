@@ -127,3 +127,9 @@ sys_dwait(void)
     return -1;
   return dwait(st);
 }
+
+int
+sys_changeps(void)
+{
+  return changeps();
+}
