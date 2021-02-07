@@ -681,7 +681,10 @@ int changepriority(int pid, int priority) {
 	acquire(&ptable.lock);
 	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++) {
 	  if(p->pid == pid) {
-			p->priority = priority;
+      if (priority < 7 && priority > 0)
+			  p->priority = priority;
+      else
+        p->priority = 5;  
 			break;
 		}
 	}
