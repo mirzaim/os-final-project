@@ -28,6 +28,8 @@ int getppid(void);
 void getchildspid(int size, int ar[]);
 int getsyscallcounter(int);
 int dwait(struct procstat*);
+int changeps(void);
+int changepriority(int ,int);
 
 // ulib.c
 int stat(const char*, struct stat*);

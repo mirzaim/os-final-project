@@ -24,3 +24,5 @@
 #define SYS_getchildspid 23
 #define SYS_getsyscallcounter 24
 #define SYS_dwait 25
+#define SYS_changeps 26
+#define SYS_changepriority 27

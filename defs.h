@@ -123,6 +123,8 @@ void            wakeup(void*);
 void            yield(void);
 void            getchildspid(int , int*);
 int             dwait(struct procstat*);
+int             changeps(void);
+int             changepriority(int ,int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);
