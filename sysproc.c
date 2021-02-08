@@ -128,11 +128,6 @@ sys_dwait(void)
   return dwait(st);
 }
 
-int
-sys_changeps(void) {
-  return changeps();
-}
-
 int sys_changepriority(void) {
   int pid, priority;
   if(argint(0, &pid) < 0)

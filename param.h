@@ -13,4 +13,7 @@
 #define FSSIZE       1000  // size of file system in blocks
 #define QUANTUM      10
 #define MAX_SYS_CALL 32
+#define DEAFAULT_PRI 3
+#define LEAST_PRISCH 6
+#define OUT_RANG_PRI 5
 
