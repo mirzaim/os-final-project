@@ -109,6 +109,7 @@ extern int sys_getsyscallcounter(void);
 extern int sys_dwait(void);
 extern int sys_changepriority(void);
 extern int sys_chshcpolicy(void);
+extern int sys_changequeue(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -138,6 +139,7 @@ static int (*syscalls[])(void) = {
 [SYS_dwait] sys_dwait,
 [SYS_changepriority]    sys_changepriority,
 [SYS_chshcpolicy]    sys_chshcpolicy,
+[SYS_changequeue]    sys_changequeue,
 };
 
 void

@@ -749,3 +749,31 @@ changepriority(int pid, int priority)
 	return pid;
 }
 
+void
+changequeue(int pid, int queue)
+{
+	struct proc *p;
+	acquire(&ptable.lock);
+	for(p = ptable.proc; p < &ptable.proc[NPROC]; p++)
+	  if(p->pid == pid && queue >= 0 && queue < NumberOfLayers_MULTI) {
+        p->queue_num = (uint)queue;
+        switch (queue) {
+          case FCFS_MULTI:
+            p->queue_criteria = &p->proc_stat[START_T];
+            break;
+          case PRIO_MULTI:
+            p->queue_criteria = &p->priority;
+            break;
+          case RR_MULTI:
+            p->queue_criteria = &p->queue_num;
+            break;
+          case PAR_PRIO_MULTI:
+            p->queue_criteria = &p->parent->priority;
+            break;
+          default:
+            break;
+        }
+      break;
+    }
+	release(&ptable.lock);
+}

@@ -125,6 +125,7 @@ void            getchildspid(int , int*);
 int             dwait(struct procstat*);
 int             changepriority(int ,int);
 void            chshcpolicy(int);
+void            changequeue(int, int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

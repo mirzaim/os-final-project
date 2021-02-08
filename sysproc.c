@@ -147,3 +147,15 @@ sys_chshcpolicy(void)
   chshcpolicy(n);
   return 1;
 }
+
+int
+sys_changequeue(void)
+{
+  int pid, qn;
+  if (argint(0, &pid) < 0)
+    return -1;
+  if (argint(1, &qn) < 0)
+    return -1;
+  changequeue(pid, qn);
+  return 1;
+}

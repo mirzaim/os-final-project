@@ -30,6 +30,7 @@ int getsyscallcounter(int);
 int dwait(struct procstat*);
 int changepriority(int ,int);
 void chshcpolicy(int);
+void changequeue(int, int);
 
 // ulib.c
 int stat(const char*, struct stat*);

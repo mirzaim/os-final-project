@@ -26,3 +26,4 @@
 #define SYS_dwait 25
 #define SYS_changepriority 26
 #define SYS_chshcpolicy 27
+#define SYS_changequeue 28
