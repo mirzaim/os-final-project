@@ -7,9 +7,11 @@
 #include "x86.h"
 #include "proc.h"
 #include "spinlock.h"
+#include "schedule.h"
 
 struct {
   struct spinlock lock;
+  uint current_scheduler;
   struct proc proc[NPROC];
 } ptable;
 
@@ -20,6 +22,17 @@ extern void forkret(void);
 extern void trapret(void);
 
 static void wakeup1(void *chan);
+
+// schedulers
+int fcfs(int);
+int prioritysch(int);
+int rr(int);
+
+static int (*schedulers[])(int) = {
+[FCFS]            fcfs,
+[PRIORITY_SCH]    prioritysch,
+[RR]              rr,
+};
 
 void
 pinit(void)
@@ -193,6 +206,7 @@ userinit(void)
   // because the assignment might not be atomic.
   acquire(&ptable.lock);
 
+  ptable.current_scheduler = RR;
   chprocstate(p, RUNNABLE);
 
   release(&ptable.lock);
@@ -356,6 +370,51 @@ wait(void)
   }
 }
 
+int
+fcfs(int start)
+{
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+  
+  int result = -1, index, i;
+  uint st = ticks;
+  for(i = 1, index = (start + i) % (NPROC); i <= NPROC; index = (start + (++i)) % (NPROC))
+    if(ptable.proc[index].state == RUNNABLE && ptable.proc[index].proc_stat[START_T] < st){
+      result = index;
+      st = ptable.proc[index].proc_stat[START_T];
+    }
+  return result;
+}
+
+int
+prioritysch(int start)
+{
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+  
+  int result = -1, index, i;
+  uint pr = LEAST_PRISCH + 1;
+  for(i = 1, index = (start + i) % (NPROC); i <= NPROC; index = (start + (++i)) % (NPROC))
+    if(ptable.proc[index].state == RUNNABLE && ptable.proc[index].priority < pr){
+      result = index;
+      pr = ptable.proc[index].priority;
+    }
+  return result;
+}
+
+int
+rr(int start)
+{
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+  
+  int index, i;
+  for(i = 1, index = (start + i) % (NPROC); i <= NPROC; index = (start + (++i)) % (NPROC))
+    if(ptable.proc[index].state == RUNNABLE)
+      return index;
+  return -1;
+}
+
 //PAGEBREAK: 42
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
@@ -368,7 +427,7 @@ void
 scheduler(void)
 {
   struct proc *p;
-  struct proc *p1;
+  int i = 0;
 
   struct cpu *c = mycpu();
   c->proc = 0;
@@ -378,26 +437,11 @@ scheduler(void)
     sti();
 
 
-    struct proc *high = 0;
-    // Loop over process table looking for process to run.
     acquire(&ptable.lock);
-    for(p = ptable.proc; p < &ptable.proc[NPROC]; p++){
-      if(p->state != RUNNABLE)
-        continue;
+    if ((i = schedulers[ptable.current_scheduler](i)) >= 0){
+      p = &ptable.proc[i];
 
-      // choose process with higher priority
-      high = p;
-      for(p1=ptable.proc; p1<&ptable.proc[NPROC];p1++) {
-          if(p1->state != RUNNABLE)
-            continue;
-          if(high->priority > p1->priority) // larger value, lower priority
-            high = p1;
-      }
-      p = high;
 
-      // Switch to chosen process.  It is the process's job
-      // to release ptable.lock and then reacquire it
-      // before jumping back to us.
       c->proc = p;
       switchuvm(p);
       chprocstate(p, RUNNING);
