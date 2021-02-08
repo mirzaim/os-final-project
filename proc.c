@@ -700,6 +700,18 @@ dwait(struct procstat* ps)
   }
 }
 
+// change scheduling algorithm.
+void
+chshcpolicy(int num)
+{
+  if(num < 0 || num >= NELEM(schedulers))
+    panic("undefined scheduler.");
+  
+  acquire(&ptable.lock);
+  ptable.current_scheduler = (uint)num;
+  release(&ptable.lock);
+}
+
 int
 changepriority(int pid, int priority)
 {

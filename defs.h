@@ -124,6 +124,7 @@ void            yield(void);
 void            getchildspid(int , int*);
 int             dwait(struct procstat*);
 int             changepriority(int ,int);
+void            chshcpolicy(int);
 
 // swtch.S
 void            swtch(struct context**, struct context*);

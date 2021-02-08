@@ -29,6 +29,7 @@ void getchildspid(int size, int ar[]);
 int getsyscallcounter(int);
 int dwait(struct procstat*);
 int changepriority(int ,int);
+void chshcpolicy(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

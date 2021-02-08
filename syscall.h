@@ -25,3 +25,4 @@
 #define SYS_getsyscallcounter 24
 #define SYS_dwait 25
 #define SYS_changepriority 26
+#define SYS_chshcpolicy 27
