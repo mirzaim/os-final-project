@@ -53,6 +53,8 @@ struct proc {
   uint systemcall_stat[MAX_SYS_CALL];
   uint proc_stat[NumberOfStat];
   uint priority;               // Process priority
+  uint queue_num;
+  uint *queue_criteria;
 };
 
 // Process memory is laid out contiguously, low addresses first:

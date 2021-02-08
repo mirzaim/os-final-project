@@ -27,11 +27,13 @@ static void wakeup1(void *chan);
 int fcfs(int);
 int prioritysch(int);
 int rr(int);
+int multilayer(int);
 
 static int (*schedulers[])(int) = {
 [FCFS]            fcfs,
 [PRIORITY_SCH]    prioritysch,
 [RR]              rr,
+[MULTILAYER]      multilayer,
 };
 
 void
@@ -170,6 +172,9 @@ found:
 
   // init scheduler defaults for each process.
   p->priority = DEAFAULT_PRI;
+  p->queue_num = RR_MULTI;
+  p->queue_criteria = &p->queue_num;
+
   return p;
 }
 
@@ -413,6 +418,24 @@ rr(int start)
     if(ptable.proc[index].state == RUNNABLE)
       return index;
   return -1;
+}
+
+int
+multilayer(int start)
+{
+  if(!holding(&ptable.lock))
+    panic("sched ptable.lock");
+
+  int result = -1, index, i;
+  uint sch = NumberOfLayers_MULTI, criteria = ticks;
+  for(i = 1, index = (start + i) % (NPROC); i <= NPROC; index = (start + (++i)) % (NPROC))
+    if(ptable.proc[index].state == RUNNABLE && (ptable.proc[index].queue_num < sch ||
+      (ptable.proc[index].queue_num == sch && *ptable.proc[index].queue_criteria < criteria))){
+      result = index;
+      sch = ptable.proc[index].queue_num;
+      criteria = *ptable.proc[index].queue_criteria;
+    }
+  return result;
 }
 
 //PAGEBREAK: 42
