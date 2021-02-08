@@ -1,37 +1,41 @@
+
 #include "types.h"
-#include "stat.h"
+#include "debug.h"
+#include "schedule.h"
 #include "user.h"
 
-int main(int argc, char *argv[]) {
-  for (int k = 0; k < 30; k++ ) {
-    int pid = fork ();
-    if ( pid < 0 ) {
-      printf(1, "%d failed in fork!\n", getpid());
-    } else if (pid > 0) {
-      // parent
-      printf(1, "Parent %d creating child %d\n",getpid(), pid);
-      wait();
-      }
-      else {
-	    printf(1,"Child %d created\n",getpid());
-        if (getpid() < 6) {
-           changepriority(getpid(),6);
-        } else if (getpid() >= 6 && getpid() < 11) {
-            changepriority(getpid(),5);
-        } else if (getpid() >= 11 && getpid() < 16) { 
-            changepriority(getpid(),4);
-        } else if (getpid() >= 16 && getpid() < 21) {
-           changepriority(getpid(),3);
-        } else if (getpid() >= 21 && getpid() < 26) {
-            changepriority(getpid(),2);
-        } else {
-            changepriority(getpid(),1);
-        }
+#define CHILD_PROCS 30
+#define NUM_PRINT 250
 
-	for(int i = 0; i < 250; i++)
-	    printf(1,"/%d/ : /%d/\n",getpid(), i + 1);
-	break;
-      }
+int main(void) {
+  chshcpolicy(PRIORITY_SCH);
+  for (int i = 0; i < CHILD_PROCS; i++)
+    if (fork() == 0) {
+      printf(1, "Child %d created\n", getpid());
+      if (i < 5)
+        changepriority(getpid(), 6);
+      else if (i < 10)
+        changepriority(getpid(), 5);
+      else if (i < 15)
+        changepriority(getpid(), 4);
+      else if (i < 20)
+        changepriority(getpid(), 3);
+      else if (i < 25)
+        changepriority(getpid(), 2);
+      else if (i < 30)
+        changepriority(getpid(), 1);
+      for (int i = 0; i < NUM_PRINT; i++)
+        printf(1, "/%d/ : /%d/\n", getpid(), i + 1);
+      exit();
+    }
+  struct procstat ps[CHILD_PROCS];
+  int pid[CHILD_PROCS], mean;
+  for (int i = 0; i < CHILD_PROCS; i++) pid[i] = dwait(&ps[i]);
+
+  for (int i = 0; i < CHILD_PROCS; i++) {
+    mean = (ps[i].cpu_burst + ps[i].turnaround + ps[i].waiting_time) / 3;
+    printf(1, "%d: cpu_burst: %d, turnaround: %d, waiting_time: %d, mean: %d\n",
+           pid[i], ps[i].cpu_burst, ps[i].turnaround, ps[i].waiting_time, mean);
   }
   exit();
 }
